@@ -12,18 +12,52 @@ typedef struct linked_list {
     int count;
 } linked_list;
 
+int allocations_count = 0;
+
+void *my_malloc(size_t size) {
+    allocations_count += 1;
+
+    //printf("Allocation for size=%li, allocation_count=%i\n", size, allocations_count);
+
+    return malloc(size);
+}
+
+void my_free(void *ptr) {
+    allocations_count -= 1;
+
+    //printf("Deallocation, allocation_count=%i\n", allocations_count);
+
+    free(ptr);
+}
+
+
 node *node_create(int value) {
-    node *node = malloc(sizeof(node));
+    node *node = my_malloc(sizeof(node));
     node->value = value;
     node->next = NULL;
     return node;
 }
 
 linked_list *linked_list_create() {
-    linked_list *linked_list = malloc(sizeof(linked_list));
+    linked_list *linked_list = my_malloc(sizeof(linked_list));
     linked_list->first = NULL;
     linked_list->count = 0;
     return linked_list;
+}
+
+void linked_list_destroy(linked_list **self_ptr) {
+    linked_list *self = *self_ptr;
+
+    node *current = self->first;
+
+    while (current) {
+        node *next = current->next;
+        my_free(current);
+        current = next;
+    }
+
+    my_free(*self_ptr);
+    *self_ptr = NULL;
 }
 
 void linked_list_push_front(linked_list *self, node *new_node) {
@@ -47,7 +81,7 @@ void linked_list_print(linked_list *self) {
 
 void linked_list_reverse(linked_list *self) {
     // array of node*
-    node **array = malloc(sizeof(node *) * self->count);
+    node **array = my_malloc(sizeof(node *) * self->count);
     node *current = self->first;
     int index = 0;
     while (current) {
@@ -63,7 +97,7 @@ void linked_list_reverse(linked_list *self) {
     for (int i = 0; i < count; i++) {
         linked_list_push_front(self, array[i]);
     }
-    free(array);
+    my_free(array);
 }
 
 typedef struct {
@@ -72,8 +106,8 @@ typedef struct {
 } array;
 
 array *linked_list_to_array(linked_list *self) {
-    array *my_array = malloc(sizeof(array));
-    my_array->first = malloc(sizeof(int) * self->count);
+    array *my_array = my_malloc(sizeof(array));
+    my_array->first = my_malloc(sizeof(int) * self->count);
     my_array->length = self->count;
 
     node *current = self->first;
@@ -94,6 +128,12 @@ void array_print(array *self) {
     }
 }
 
+void array_destroy(array **array) {
+    my_free((**array).first);
+    my_free(*array);
+    *array = NULL;
+}
+
 
 int main(void) {
     linked_list *linked_list = linked_list_create();
@@ -107,6 +147,10 @@ int main(void) {
     array *my_array = linked_list_to_array(linked_list);
     array_print(my_array);
 
+    array_destroy(&my_array);
+    linked_list_destroy(&linked_list);
+
+    printf("allocations left: %i\n", allocations_count);
 
     return 0;
 }
