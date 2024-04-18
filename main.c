@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#define TRACK_ALLOCATIONS 0
+
 typedef struct node {
     int value;
     struct node *next;
@@ -17,7 +19,9 @@ int allocations_count = 0;
 void *my_malloc(size_t size) {
     allocations_count += 1;
 
-    //printf("Allocation for size=%li, allocation_count=%i\n", size, allocations_count);
+    if (TRACK_ALLOCATIONS) {
+        printf("Allocation for size=%li, allocation_count=%i\n", size, allocations_count);
+    }
 
     return malloc(size);
 }
@@ -25,7 +29,9 @@ void *my_malloc(size_t size) {
 void my_free(void *ptr) {
     allocations_count -= 1;
 
-    //printf("Deallocation, allocation_count=%i\n", allocations_count);
+    if (TRACK_ALLOCATIONS) {
+        printf("Deallocation, allocation_count=%i\n", allocations_count);
+    }
 
     free(ptr);
 }
