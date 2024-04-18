@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define TRACK_ALLOCATIONS 0
+#define TRACK_ALLOCATIONS 1
 
 typedef struct node {
     int value;
@@ -38,17 +38,17 @@ void my_free(void *ptr) {
 
 
 node *node_create(int value) {
-    node *node = my_malloc(sizeof(node));
-    node->value = value;
-    node->next = NULL;
-    return node;
+    node *ptr = my_malloc(sizeof(node));
+    ptr->value = value;
+    ptr->next = NULL;
+    return ptr;
 }
 
 linked_list *linked_list_create() {
-    linked_list *linked_list = my_malloc(sizeof(linked_list));
-    linked_list->first = NULL;
-    linked_list->count = 0;
-    return linked_list;
+    linked_list *ptr = my_malloc(sizeof(linked_list));
+    ptr->first = NULL;
+    ptr->count = 0;
+    return ptr;
 }
 
 void linked_list_destroy(linked_list **self_ptr) {
@@ -66,7 +66,19 @@ void linked_list_destroy(linked_list **self_ptr) {
     *self_ptr = NULL;
 }
 
-void linked_list_push_front(linked_list *self, node *new_node) {
+void linked_list_push_front(linked_list *self, int value) {
+    node* new_node = node_create(value);
+    if (self->first == NULL) {
+        self->first = new_node;
+    } else {
+        node *temp = self->first;
+        new_node->next = temp;
+        self->first = new_node;
+    }
+    self->count++;
+}
+
+void linked_list_push_front_node(linked_list *self, node *new_node) {
     if (self->first == NULL) {
         self->first = new_node;
     } else {
@@ -101,7 +113,7 @@ void linked_list_reverse(linked_list *self) {
     self->count = 0;
 
     for (int i = 0; i < count; i++) {
-        linked_list_push_front(self, array[i]);
+        linked_list_push_front_node(self, array[i]);
     }
     my_free(array);
 }
@@ -144,8 +156,7 @@ void array_destroy(array **array) {
 int main(void) {
     linked_list *linked_list = linked_list_create();
     for (int i = 0; i < 100; i++) {
-        node *node = node_create(i);
-        linked_list_push_front(linked_list, node);
+        linked_list_push_front(linked_list, i);
     }
     linked_list_reverse(linked_list);
     //linked_list_print(linked_list);
