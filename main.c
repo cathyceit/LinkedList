@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define TRACK_ALLOCATIONS 1
+#define TRACK_ALLOCATIONS 0
 
 typedef struct node {
     int value;
